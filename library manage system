@@ -1,0 +1,663 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <windows.h>
+
+//图书管理系统 
+
+//函数声明
+void InitialPage();//初始页面
+void SignIn(int count);//登录页面 
+void MainMenu();//主菜单 
+void MemberManage();//会员管理菜单 
+void PrintMember();//显示所有会员 
+void AddMember();//添加会员 
+void ChangeMember();//修改会员 
+void BookManage();//书籍管理菜单 
+void PrintBook();//查看书目列表 
+void BookList();//初始化书目列表 
+void AddBook();//添加书目 
+void DeleteBook();//删除书目 
+void Shopping();//购物结算功能 
+void ChangePassword();//修改密码 
+void PasswordStrength(char pw[100],int length);//判断密码强度（1最弱-4最强） 
+int FuzzySearchBook(char keyword[100]);//模糊搜索 
+ 
+//会员 
+struct Member
+{
+	int member_number;//会员编号 
+	char member_name[100];//会员姓名 
+	int member_score;//会员积分 
+};
+//书籍 
+struct Book
+{
+	char book_name[100];//图书名字
+	int book_price;//图书价格
+	struct Book *next;//指针，指向下一个结点 
+}*Book,*BookEnd;//头结点和尾结点 
+
+//全局变量 
+char name[100]="admin";//用户名 
+char password[100]={'1','2','3','4','5','6'};//密码
+int AllMember=8;//会员总数 
+//初始会员信息 （最多999个会员） 
+struct Member mem[1000]={{0,0,0},{1,"张三",100},{2,"李四",600},{3,"王五",500},{4,"陆六",1000}
+                         ,{5,"钱七",900},{6,"大强",100},{7,"小丽",100},{8,"敏敏",100}};
+ 
+
+
+//主函数
+int main() 
+{
+	BookList();//先初始化书目列表 
+	InitialPage();//正式进入系统 
+	return 0;
+}
+
+
+//初始页面 
+void  InitialPage()
+{
+	printf("***********************\n");
+	printf("*   图书销售管理系统  *\n");
+	printf("*      1.登录系统     *\n");
+	printf("*      2.退出         *\n");
+	printf("***********************\n");
+	printf("请选择，输入数字（1-2）：");
+	int a;
+	scanf("%d",&a);
+	if(a==1) 
+	{
+		system("cls");
+		printf("欢迎光临图书销售管理系统！\n");
+		SignIn(3);//登录 
+	}
+	else if(a==2)
+	{
+		system("cls");
+		printf("欢迎您再次使用本系统！");
+	}
+	else //非法输入 
+	{
+		system("cls");
+		getchar();
+		printf("输入错误，请重新输入！\n");
+		InitialPage();//重新进入系统 
+	}		
+} 
+
+//登录页面
+void SignIn(int count)//参数是可以输入次数（有三次机会） 
+{
+	if(count>0) 
+	{
+		char sname[100],spassword[100];//输入的名字和密码 
+		printf("请输入账号:");
+		scanf("%s",sname);
+		printf("请输入密码:");
+		scanf("%s",spassword);
+		//比对账户和密码是否正确 
+		int a=strcmp(sname,name);
+		int b=strcmp(spassword,password);
+		if(a==0&&b==0)//输入正确 
+		{
+			system("cls");
+			printf("登录成功!\n");
+			MainMenu();//主菜单 
+		}
+		else //输入不正确 
+		{
+			system("cls");
+			if(count>1) 
+			printf("账号或密码错误！你还有%d次机会！\n",count-1);
+			SignIn(count-1);//继续输入 
+		}		
+	}
+	else
+	{
+		system("cls");
+		printf("连续三次输入不正确，退出系统！\n");
+	}
+} 
+
+//主菜单
+void MainMenu()
+{
+	printf("******************************\n");
+	printf("*      图书销售管理系统      *\n");
+	printf("*         1.会员管理         *\n");
+	printf("*         2.书籍管理         *\n");
+	printf("*         3.购物结算         *\n");
+	printf("*         4.注销             *\n");
+	printf("*         5.修改密码         *\n");
+	printf("******************************\n");	
+	printf("请选择，输入数字（1-4）：");
+	int a;
+	scanf("%d",&a);
+	switch(a)
+	{
+		case 1:
+			system("cls");
+			MemberManage();//会员管理 
+			break;
+		case 2:
+			system("cls");
+			BookManage();//书籍管理 
+			break;
+		case 3:
+			system("cls");
+			Shopping();//购物结算 
+			MainMenu();//返回主菜单 
+			break;
+		case 4:
+			system("cls");
+			InitialPage();//退出登录（要重新登录） 
+			break;
+		case 5:
+			system("cls");
+			ChangePassword();//修改密码 
+		default: 
+			system("cls");
+			getchar();
+			printf("输入错误，请重新输入\n");
+			MainMenu();//返回主菜单 
+			break;
+			
+	}
+}
+
+//会员管理菜单
+void MemberManage()
+{
+	printf("图书销售管理系统>会员管理\n");
+	printf("**************************\n");
+	printf("*  1.显示所有会员        *\n");
+	printf("*  2.添加会员信息        *\n");
+	printf("*  3.修改会员信息        *\n");
+	printf("*  4.返回主菜单          *\n");
+	printf("**************************\n");
+	printf("请选择，输入数字：");
+	int a;
+	scanf("%d",&a);
+	switch(a)
+	{
+		case 1:
+			system("cls");
+			PrintMember();//显示会员
+			system("pause");
+			system("cls");
+			MemberManage();//返回会员管理系统菜单 
+			break;
+		case 2:
+			system("cls");
+			AddMember();//添加会员 
+			system("pause");
+			system("cls");					
+			MemberManage();//返回会员管理系统菜单 
+			break;
+		case 3:
+			system("cls");
+			ChangeMember();//修改会员
+			system("pause");
+			system("cls");			 			
+			MemberManage();//返回会员管理系统菜单 
+			break;
+		case 4:
+			system("cls");			
+			MainMenu();//返回主菜单 
+			break;
+		default:
+			system("cls");
+			getchar();
+			printf("输入错误，请重新输入！\n");
+			MemberManage();//返回会员管理系统菜单 
+			break;
+	}
+}
+
+//显示所有会员
+void PrintMember()
+{
+	printf("图书销售管理系统 > 会员信息管理 > 显示会员信息\n");
+	printf("会员号      姓名     积分\n");
+	int i;
+	for(i=1;i<=AllMember;i++)
+	{
+		printf("%4d ",mem[i].member_number);
+		printf("%11s ",mem[i].member_name);
+		printf("%8d\n",mem[i].member_score);
+	}
+} 
+
+//添加会员
+void AddMember()
+{
+	printf("图书销售管理系统 > 会员信息管理 > 新增会员信息\n");
+	if(AllMember>=100)
+	{
+		printf("会员数量达到上限，添加失败！\n");
+		system("pause");
+		system("cls");		
+		MemberManage(); 
+	}
+	AllMember++;//会员总数+1 
+	mem[AllMember].member_number=AllMember;// 新会员的编号 
+	char new_member_name[100];
+	printf("请输入新会员姓名:");
+	scanf("%s",&new_member_name);
+	strcpy(mem[AllMember].member_name,new_member_name);
+	printf("请输入新会员积分:");
+	scanf("%d",&mem[AllMember].member_score);
+	printf("添加成功！\n");
+	PrintMember();//打印会员信息 
+} 
+
+//修改会员
+void ChangeMember()
+{
+	PrintMember();//先打印会员信息，方便修改	
+	printf("图书销售管理系统 > 会员信息管理 >修改会员信息\n");
+	printf("请输入要修改的会员号:");
+	int a;
+	scanf("%d",&a);
+	if(a>AllMember||a<=0)//非法输入 
+	{
+		printf("输入错误，请重新输入！\n");
+		getchar();
+		ChangeMember(); 
+	}
+	printf("请输入修改后的会员姓名:");
+	char new_member_name[100]; 
+	scanf("%s",&new_member_name);
+	strcpy(mem[a].member_name,new_member_name);
+	printf("请输入修改后的会员积分:");
+	scanf("%d",&mem[a].member_score);
+	printf("修改成功！\n");
+	PrintMember();//再打印会员信息 
+} 
+
+//书籍管理菜单 
+void BookManage()
+{
+	printf("图书销售管理系统 >书籍管理\n");
+	printf("****************\n");
+	printf("* 1.查看书目   *\n");
+	printf("* 2.添加书籍   *\n");
+	printf("* 3.删除书籍   *\n");
+	printf("* 4.返回主菜单 *\n");
+	printf("****************\n");
+	printf("请选择，输入数字：");
+	int a;
+	scanf("%d",&a);
+	switch(a)
+	{
+		case 1:
+			system("cls");
+			PrintBook();//打印书籍
+			system("pause");
+			system("cls");			 
+			BookManage();//返回书籍管理系统菜单			
+			break;
+		case 2:
+			system("cls");
+			AddBook();//添加书籍
+			system("pause");
+			system("cls");			 
+			BookManage();//返回书籍管理系统菜单 
+			break;
+		case 3:
+			system("cls");
+			DeleteBook();//删除书籍 
+			system("pause");
+			system("cls");			
+			BookManage();//返回书籍管理系统菜单 
+			break;
+		case 4:
+			system("cls");
+			MainMenu();//返回主菜单 
+			break;
+		default:
+			system("cls");
+			getchar();
+			printf("输入错误，请重新输入！\n");
+			BookManage();//返回书籍管理系统菜单 
+			break;
+	}
+}
+
+//查看书目列表
+void PrintBook()
+{
+	printf("图书销售管理系统>书籍管理>书籍列表\n");
+	printf("图书号     图书名                图书价钱\n");
+	int i;
+	struct Book *p=Book->next;
+	for(i=1;i<=Book->book_price;i++)
+	{
+		printf("%4d ",i);
+		printf("    %-20s ",p->book_name);
+		printf("%8d\n",p->book_price);
+		p=p->next;
+	}
+}
+
+//初始化书目列表
+void BookList()
+{
+	Book=(struct Book*)malloc(sizeof(struct Book));//头结点
+	if(Book==NULL) 
+	{
+		printf("出错了！错误原因是：%s\n",strerror(errno));
+		system("pause");
+		system("cls");
+		BookManage();
+	}
+	Book->next =NULL;
+	BookEnd=Book;
+	Book->book_price=0;//书本总数 
+	char name[10][100]={{0},{"C#2.0宝典"},{"Java编程基础"},{"J2SE桌面应用程序开发"},
+                   	{"数据库设计和应用"},{"水浒传"},{"红楼梦"},{"三国演义"},{"地心游记"}}; 
+    int price[10]={0,88,55,60,45,55,68,78,29};
+    int i=0;
+    struct Book *p=Book;
+	for(i=1;i<=8;i++)
+	{
+		p->next =(struct Book*)malloc(sizeof(struct Book));//开辟一块空间存一本书
+		if(p->next ==NULL) 
+		{
+			printf("出错了！错误原因是：%s\n",strerror(errno));
+			system("pause");
+			system("cls");
+			BookManage();
+		}
+		p->next->book_price =price[i];
+		strcpy(p->next->book_name ,name[i]);
+		Book->book_price ++;
+		p=p->next; 
+		BookEnd=p;
+	}
+	p->next=NULL;
+} 
+
+//添加书籍 
+void AddBook()
+{
+	printf("图书销售管理系统 >书籍管理>添加书籍\n");	
+	BookEnd->next=(struct Book*)malloc(sizeof(struct Book));
+	if(BookEnd->next ==NULL) 
+		{
+			printf("出错了！错误原因是：%s\n",strerror(errno));
+			system("pause");
+			system("cls");
+			BookManage();
+		}
+	BookEnd=BookEnd->next;
+	printf("请输入图书名：");
+	char new_book_name[100];
+	scanf("%s",&new_book_name);
+	strcpy(BookEnd->book_name,new_book_name);
+	printf("请输入图书价钱：");
+	scanf("%d",&BookEnd->book_price );
+	while(!BookEnd->book_price)	
+	{
+		printf("请输入图书价钱！");
+		scanf("%d",&BookEnd->book_price ); 
+	}
+	Book->book_price++;
+	printf("添加成功！\n");
+	PrintBook();
+}
+
+//删除书籍 
+void DeleteBook()
+{
+	PrintBook();//先打印书目列表，方便删除 
+	printf("图书销售管理系统 >书籍管理>书籍下架\n");
+	printf("请输入要删除的图书书名(支持模糊搜索)：");
+	char this_book_name[100];
+	scanf("%s",&this_book_name);
+	int i=1;
+	int book_number=FuzzySearchBook(this_book_name);
+	struct Book *p=Book->next;
+	struct Book *pfront=Book;
+	for(i=1;i<book_number;i++)
+	{
+		p=p->next;
+		pfront=pfront->next ;
+	}
+	if(book_number==0||book_number>Book->book_price ||book_number<=0)//非法输入 
+	{
+		system("cls");
+		printf("输入错误，请重新输入！\n");
+		DeleteBook();
+	}
+	else
+	{
+		printf("找到该图书，位置为：%d\n",book_number);
+		pfront->next =p->next ;
+		free(p);
+		p=NULL;
+		Book->book_price --;
+		printf("删除成功！\n");
+		PrintBook();
+	}
+}
+
+//购物结算功能 
+void Shopping()
+{ 
+	PrintBook();//先打印书目列表 
+	printf("图书销售管理系统 >购物结算\n");
+	printf("请输入会员号：");
+	int this_member_number=0;
+	scanf("%d",&this_member_number);
+	if(this_member_number>AllMember||this_member_number<=0)//非法输入 
+	{
+		system("cls");
+		getchar();
+		printf("输入错误，请重新输入！\n");
+		Shopping();
+	}		
+	printf("欢迎%s！",mem[this_member_number].member_name);
+	printf("您的余额为%d。\n",mem[this_member_number].member_score);
+	printf("请输入要购买的书籍编号：");
+	int this_book_number=0;
+	scanf("%d",&this_book_number);
+	if(this_book_number>Book->book_price ||this_book_number<=0)//非法输入 
+	{
+		system("cls");
+		getchar();
+		printf("输入错误，请重新输入！\n");
+		Shopping();		
+	}
+	struct Book *p=Book;
+	int i;
+	for(i=1;i<=this_book_number;i++)
+	{
+		p=p->next;
+	}
+	printf("请输入您要购买的数量：");
+	int quantity=0;
+	scanf("%d",&quantity);
+	while(quantity<=0)//非法输入 
+	{
+		char eatallchar[10];
+		gets(eatallchar);
+		printf("输入错误，请重新输入！");
+		printf("请输入您要购买的数量：");
+		scanf("%d",&quantity);
+	}
+	int sum;//总额 
+	sum=quantity*p->book_price;
+	Choose:
+	printf("您购买的图书为%s，数量为%d，总额为%d\n",p->book_name,quantity,sum);
+	printf("是否继续？（y/n）：");
+	char a;
+	getchar();
+	scanf("%c",&a);
+	switch(a)
+	{
+		case 'y':
+		case 'Y':
+			if(mem[this_member_number].member_score>=sum)
+			{
+				mem[this_member_number].member_score -=sum;
+				system("cls");
+				printf("购买成功！\n"); 
+				
+			}
+			else
+			{
+				system("cls");
+				printf("余额不足\n"); 
+			}
+			break;
+		case 'N':
+		case 'n':
+			system("cls");
+			printf("退出购物结算系统！\n");
+			break;
+		default:
+			printf("输入错误，请重新选择！\n");
+			goto Choose;
+			break;
+	}
+}
+
+//修改密码 
+void ChangePassword()
+{
+	printf("请输入原来的密码：");
+	char first_print[100];
+	char second_print[100];
+	scanf("%s",&first_print);
+	if(strcmp(first_print,password)!=0)
+	{
+		system("cls");
+		printf("密码错误！\n");
+		MainMenu();
+	} 
+	Again:
+	printf("请输入新密码(6-18位，建议包含大写字母小写字母数字符号其中至少两种字符)：");
+	scanf("%s",&first_print);
+	int length=strlen(first_print);
+	if(length<6||length>18)//密码长度不对 
+	{
+		system("cls");
+		printf("请输入6-18位的密码！\n");
+		goto Again;
+	}
+	PasswordStrength(first_print,length);//判断密码强度 	
+	printf("请再次输入：");
+	scanf("%s",&second_print);
+	if(strcmp(first_print,second_print)!=0)
+	{
+		system("cls");
+		printf("两次密码不一致！请重新输入！\n");
+		goto Again;
+	}
+	strcpy(password,second_print);
+	system("cls");
+	printf("修改成功！请重新登录！\n");
+	InitialPage(); 
+}
+
+//判断密码强度 
+void PasswordStrength(char pw[100],int length)
+{
+	int i;
+	int pwtype[4]={0};//记录是否有数字、大写字母、小写字母、其他字符 
+	for(i=0;i<length;i++)
+	{
+		if(48<=pw[i]&&pw[i]<=57)//是否有数字 
+		{
+			pwtype[0]=1;
+			continue;
+		}
+		else if(65<=pw[i]&&pw[i]<=90)//是否有大写字母 
+		{
+			pwtype[1]=1;
+			continue;
+		}
+		else if(97<=pw[i]&&pw[i]<=122)//是否有小写字母 
+		{
+			pwtype[2]=1;
+			continue;
+		}
+		else//是否有其他字符
+		{
+			pwtype[3]=1;
+			continue;
+		} 
+	}
+	int sum=pwtype[0]+pwtype[1]+pwtype[2]+pwtype[3];
+	printf("你的密码强度为%d级（最高4级）。\n",sum);
+}
+
+//模糊搜索
+int FuzzySearchBook(char keyword[100])
+{
+	int number=0;
+	int i;
+	int sign=0;
+	int *pnumber=NULL;
+	char first_book_name[100];
+	int first_book_price;
+	struct Book *p=Book->next ;
+	for(i=1;i<=Book->book_price;i++)
+	{
+		if(strstr(p->book_name ,keyword)!=NULL)
+		{
+			if(number==0)//第一次 
+			{
+				number=i;
+				strcpy(first_book_name,p->book_name);
+				first_book_price=p->book_price;
+			}
+			else if(sign==0)//第二次 
+			{
+				printf("图书号     图书名                图书价钱\n");
+				printf("%4d ",number);
+				printf("    %-20s ",first_book_name);
+				printf("%8d\n",first_book_price);
+				printf("%4d ",i);
+				printf("    %-20s ",p->book_name);
+				printf("%8d\n",p->book_price);
+				sign=1;
+				pnumber=(int*)malloc(sizeof(int)*2);
+				pnumber[0]=number;pnumber[1]=i;
+			}
+			else//第n次(n>2) 
+			{
+				printf("%4d ",i);
+				printf("    %-20s ",p->book_name);
+				printf("%8d\n",p->book_price);
+				sign++;
+				int *pnumber2=(int*)realloc(pnumber,sizeof(int)*(sign+1));
+				pnumber=pnumber2;	
+				pnumber[sign]=i;			
+			}
+		}
+		p=p->next;
+	}
+	if(sign!=0)
+	{
+		printf("请选择要删除的书籍编号：");
+		int a;
+		scanf("%d",&a);
+		do
+		{
+			for(i=0;i<=sign;i++)
+			{
+				if(a==pnumber[i]) return a;
+			}
+			printf("输入错误，请重新输入："); 
+			getchar();
+			scanf("%d",&a);	
+		}while(1);
+	}
+	else
+		return number;
+}
